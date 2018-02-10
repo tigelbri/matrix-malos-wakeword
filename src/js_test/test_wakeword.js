@@ -15,6 +15,7 @@ var creator_wakeword_base_port = 60001
 var creator_everloop_base_port = 20013 + 8 // port for Everloop driver.
 // Packaged Protocol buffers
 var matrix_io = require('matrix-protos').matrix_io;
+var rosjs = require('roslib');
 var zmq = require('zmq')
 
 const LM_PATH = '/home/pi/assets/9854.lm'
@@ -69,6 +70,19 @@ updateSocket.on('message', function(wakeword_buffer) {
     
     switch(wakeWordData.wakeWord) {
       case "MIA RING RED":
+        var twist = new rosjs.Message({
+	  linear : {
+	         x : 0.1,
+	         y : 0.2,
+	         z : 0.3
+	   },
+	   angular : {
+	         x : -0.1,
+	         y : -0.2,
+	         z : -0.3
+	   }
+	});
+        cmdVel.publish(twist);
         setEverloop(255, 0, 25, 0, 0.05)
         break;
       case "MIA RING BLUE":
@@ -127,6 +141,28 @@ function sendConfigProto(cfg){
  ****************** MAIN **********************
  **********************************************/
 
+var ros = new rosjs.Ros({
+     url : 'ws://localhost:9090'
+});
+ros.on('connection', function() {
+ console.log('Connected to websocket server.');
+});
+
+ros.on('error', function(error) {
+ console.log('Error connecting to websocket server: ', error);
+});
+
+ros.on('close', function() {
+  console.log('Connection to websocket server closed.');
+});
+
+  // Publishing a Topic
+//   // ------------------
+var cmdVel = new rosjs.Topic({
+  ros : ros,
+  name : '/cmd_vel',
+  messageType : 'geometry_msgs/Twist'
+});
 startWakeUpRecognition();
 
 

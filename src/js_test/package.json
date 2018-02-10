@@ -11,5 +11,6 @@
   },
   "dependencies": {
     "matrix-protos": "0.0.11"
+    "roslibjs": "0.20.0"
   }
 }
